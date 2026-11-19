@@ -4,48 +4,53 @@ name: Build NEXUS CONSOLE
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
 
 jobs:
   build:
-    name: Compile NEXUS CONSOLE
     runs-on: windows-latest
 
     steps:
-      - name: Download source code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install .NET 8
+      - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Check project files
+      - name: Find NEXUS project
+        id: find
+        shell: pwsh
         run: |
-          if (!(Test-Path "NEXUS-CONSOLE/src/Nexus.App/Nexus.App.csproj")) {
-            Write-Error "Nexus.App.csproj introuvable"
+          $project = Get-ChildItem -Path . -Filter "Nexus.App.csproj" -Recurse |
+            Select-Object -First 1
+
+          if ($null -eq $project) {
+            Write-Error "Nexus.App.csproj introuvable dans le repository"
+            Get-ChildItem -Path . -Directory
             exit 1
           }
-          Write-Host "Projet trouve !"
 
-      - name: Restore dependencies
-        working-directory: NEXUS-CONSOLE
-        run: dotnet restore src/Nexus.App/Nexus.App.csproj
+          Write-Host "Projet trouve : $($project.FullName)"
+          "PROJECT_PATH=$($project.FullName)" >> $env:GITHUB_ENV
 
-      - name: Publish Windows EXE
-        working-directory: NEXUS-CONSOLE
-        run: >
-          dotnet publish src/Nexus.App/Nexus.App.csproj
-          -c Release
-          -r win-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -o ../publish
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore "$env:PROJECT_PATH"
 
-      - name: Upload Windows application
+      - name: Build EXE
+        shell: pwsh
+        run: |
+          dotnet publish "$env:PROJECT_PATH" `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o "$env:GITHUB_WORKSPACE\publish"
+
+      - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
           name: NEXUS-CONSOLE-Windows-x64
