@@ -1,0 +1,54 @@
+
+name: Build NEXUS CONSOLE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Compile NEXUS CONSOLE
+    runs-on: windows-latest
+
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Check project files
+        run: |
+          if (!(Test-Path "NEXUS-CONSOLE/src/Nexus.App/Nexus.App.csproj")) {
+            Write-Error "Nexus.App.csproj introuvable"
+            exit 1
+          }
+          Write-Host "Projet trouve !"
+
+      - name: Restore dependencies
+        working-directory: NEXUS-CONSOLE
+        run: dotnet restore src/Nexus.App/Nexus.App.csproj
+
+      - name: Publish Windows EXE
+        working-directory: NEXUS-CONSOLE
+        run: >
+          dotnet publish src/Nexus.App/Nexus.App.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o ../publish
+
+      - name: Upload Windows application
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEXUS-CONSOLE-Windows-x64
+          path: publish/
+          if-no-files-found: error
+          retention-days: 7
