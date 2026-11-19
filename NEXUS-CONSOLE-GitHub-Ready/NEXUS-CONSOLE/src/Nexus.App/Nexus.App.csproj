@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>NexusConsole</AssemblyName>
+    <RootNamespace>Nexus.Shell</RootNamespace>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <ApplicationIcon>..\..\assets\nexus.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Nexus.Core\Nexus.Core.csproj" />
+    <ProjectReference Include="..\Nexus.Data\Nexus.Data.csproj" />
+    <ProjectReference Include="..\Nexus.Input\Nexus.Input.csproj" />
+    <ProjectReference Include="..\Nexus.Detection\Nexus.Detection.csproj" />
+    <ProjectReference Include="..\Nexus.Launching\Nexus.Launching.csproj" />
+    <ProjectReference Include="..\Nexus.Cloud\Nexus.Cloud.csproj" />
+    <ProjectReference Include="..\Nexus.Store\Nexus.Store.csproj" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2739.15" />
+  </ItemGroup>
+</Project>
